@@ -1,5 +1,6 @@
 import { useLogin, usePrivy } from '@privy-io/react-auth'
 import Game from './Game'
+import MonadGamesId from './MonadGamesId'
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       <button disabled={disableLogin} onClick={login}>
             Log in
         </button>
+      <MonadGamesId />
       <Game />
     </div>
   )
