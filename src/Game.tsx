@@ -10,6 +10,7 @@ const Game = () => {
   const [score, setScore] = useState(0)
   const [targets, setTargets] = useState<Target[]>([])
   const [gameStarted, setGameStarted] = useState(false)
+  const [gameOver, setGameOver] = useState(false)
 
   const generateTarget = () => {
     const newTarget: Target = {
@@ -27,13 +28,20 @@ const Game = () => {
 
   const startGame = () => {
     setGameStarted(true)
+    setGameOver(false)
     setScore(0)
     setTargets([])
   }
 
   const stopGame = () => {
     setGameStarted(false)
+    setGameOver(false)
     setTargets([])
+  }
+
+  const endGame = () => {
+    setGameStarted(false)
+    setGameOver(true)
   }
 
   useEffect(() => {
@@ -43,9 +51,20 @@ const Game = () => {
       generateTarget()
     }, 2000)
 
-    // Remove targets after 3 seconds if not clicked
+    // Remove targets after 3 seconds if not clicked and end game if any are missed
     const cleanupInterval = setInterval(() => {
-      setTargets(prev => prev.filter(target => Date.now() - target.id < 3000))
+      setTargets(prev => {
+        const currentTime = Date.now()
+        const expiredTargets = prev.filter(target => currentTime - target.id >= 3000)
+        
+        // If any targets expired (were missed), end the game
+        if (expiredTargets.length > 0) {
+          endGame()
+          return []
+        }
+        
+        return prev.filter(target => currentTime - target.id < 3000)
+      })
     }, 100)
 
     return () => {
@@ -59,9 +78,15 @@ const Game = () => {
       <h1>Click Target Game</h1>
       <div style={{ marginBottom: '20px' }}>
         <h2>Score: {score}</h2>
+        {gameOver && (
+          <div style={{ marginBottom: '10px' }}>
+            <h3 style={{ color: 'red' }}>Game Over! You missed a target.</h3>
+            <p>Final Score: {score}</p>
+          </div>
+        )}
         {!gameStarted ? (
           <button onClick={startGame} style={{ padding: '10px 20px', fontSize: '16px' }}>
-            Start Game
+            {gameOver ? 'Play Again' : 'Start Game'}
           </button>
         ) : (
           <button onClick={stopGame} style={{ padding: '10px 20px', fontSize: '16px' }}>
@@ -103,7 +128,7 @@ const Game = () => {
       {gameStarted && (
         <div style={{ marginTop: '10px' }}>
           <p>Click the red circles to score points!</p>
-          <p>Targets disappear after 3 seconds if not clicked.</p>
+          <p><strong>Warning:</strong> Game ends if you miss any target!</p>
         </div>
       )}
     </div>
