@@ -7,3 +7,74 @@
   margin: 0 auto;
   padding: 20px;
 }
+
+.monad-games-id {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin: 10px 0;
+  width: 100%;
+  max-width: 500px;
+}
+
+.username-section {
+  margin: 15px 0;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+.no-username {
+  margin: 15px 0;
+  padding: 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+}
+
+.no-username a {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.no-username a:hover {
+  background-color: #0056b3;
+}
+
+.wallet-section {
+  margin: 15px 0;
+}
+
+.wallet-section code {
+  display: block;
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  margin-top: 5px;
+}
+
+.logout-btn {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+.error {
+  color: #ff6b6b;
+  margin: 10px 0;
+}

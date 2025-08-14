@@ -1,169 +1,86 @@
 import { useEffect, useState } from 'react';
-import {
-  usePrivy,
-  type CrossAppAccountWithMetadata,
-} from "@privy-io/react-auth";
+import { usePrivy, type CrossAppAccountWithMetadata } from "@privy-io/react-auth";
 
 export default function MonadGamesId() {
   const { authenticated, user, ready, logout } = usePrivy();
   const [accountAddress, setAccountAddress] = useState<string>("");
   const [username, setUsername] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const [isLoadingUsername, setIsLoadingUsername] = useState<boolean>(false);
-  const [hasCheckedUsername, setHasCheckedUsername] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  // Function to fetch username from the API
   const fetchUsername = async (walletAddress: string) => {
-    if (!walletAddress) return;
-    
-    setIsLoadingUsername(true);
-    setHasCheckedUsername(false);
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch(`https://monad-games-id-site.vercel.app/api/check-wallet?wallet=${walletAddress}`);
       if (response.ok) {
         const data = await response.json();
-        setUsername(data.username || "");
-      } else {
-        console.error("Failed to fetch username:", response.statusText);
-        setUsername("");
+        setUsername(data.hasUsername ? data.user.username : "");
       }
-    } catch (error) {
-      console.error("Error fetching username:", error);
-      setUsername("");
+    } catch (err) {
+      console.error("Error fetching username:", err);
+      setError("Failed to load username");
     } finally {
-      setIsLoadingUsername(false);
-      setHasCheckedUsername(true);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Reset state when authentication changes
     setAccountAddress("");
     setUsername("");
-    setMessage("");
-    setHasCheckedUsername(false);
+    setError("");
 
-    // Check if privy is ready and user is authenticated
-    if (authenticated && user && ready) {
-      // Check if user has linkedAccounts
-      if (user.linkedAccounts.length > 0) {
-        // Get the cross app account created using Monad Games ID
-        const crossAppAccount: CrossAppAccountWithMetadata = user.linkedAccounts.filter(
-          account => account.type === "cross_app" && account.providerApp.id === "cmd8euall0037le0my79qpz42"
-        )[0] as CrossAppAccountWithMetadata;
+    if (authenticated && user && ready && user.linkedAccounts.length > 0) {
+      const crossAppAccount = user.linkedAccounts.find(
+        account => account.type === "cross_app" && account.providerApp.id === "cmd8euall0037le0my79qpz42"
+      ) as CrossAppAccountWithMetadata;
 
-        if (crossAppAccount) {
-          // The first embedded wallet created using Monad Games ID, is the wallet address
-          if (crossAppAccount.embeddedWallets.length > 0) {
-            const walletAddress = crossAppAccount.embeddedWallets[0].address;
-            setAccountAddress(walletAddress);
-            // Fetch username for this wallet address
-            fetchUsername(walletAddress);
-          }
-        } else {
-          setMessage("Monad Games ID account not found in linked accounts.");
-        }
+      if (crossAppAccount?.embeddedWallets.length > 0) {
+        const walletAddress = crossAppAccount.embeddedWallets[0].address;
+        setAccountAddress(walletAddress);
+        fetchUsername(walletAddress);
       } else {
-        setMessage("You need to link your Monad Games ID account to continue.");
+        setError("Monad Games ID account not found");
       }
+    } else if (authenticated && user && ready) {
+      setError("Please link your Monad Games ID account");
     }
   }, [authenticated, user, ready]);
 
-  if (!ready) {
-    return <div>Loading Monad Games ID...</div>;
-  }
-
-  if (!authenticated) {
-    return <div>Please log in to view your Monad Games ID.</div>;
-  }
+  if (!ready) return <div>Loading...</div>;
+  if (!authenticated) return <div>Please log in to view your Monad Games ID</div>;
 
   return (
-    <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', margin: '10px 0' }}>
+    <div className="monad-games-id">
       <h3>Monad Games ID</h3>
-      {accountAddress ? (
+      
+      {error && <p className="error">{error}</p>}
+      
+      {accountAddress && (
         <div>
-          {username && (
-            <div style={{ marginBottom: '15px' }}>
-              <p><strong>Username:</strong></p>
-              <p style={{ 
-                fontSize: '18px',
-                color: '#2e7d32',
-                fontWeight: 'bold',
-                margin: '5px 0'
-              }}>
-                {username}
-              </p>
+          {loading ? (
+            <p>Loading username...</p>
+          ) : username ? (
+            <div className="username-section">
+              <strong>Username: {username}</strong>
             </div>
-          )}
-          {isLoadingUsername && (
-            <div style={{ marginBottom: '15px' }}>
-              <p style={{ color: '#666', fontStyle: 'italic' }}>Loading username...</p>
-            </div>
-          )}
-          {!username && hasCheckedUsername && !isLoadingUsername && (
-            <div style={{ 
-              marginBottom: '15px', 
-              padding: '12px', 
-              backgroundColor: '#fff3cd', 
-              border: '1px solid #ffeaa7', 
-              borderRadius: '6px' 
-            }}>
-              <p style={{ margin: '0 0 10px 0', color: '#856404' }}>
-                <strong>No username found!</strong>
-              </p>
-              <p style={{ margin: '0 0 12px 0', color: '#856404', fontSize: '14px' }}>
-                Register a username to enhance your gaming experience.
-              </p>
-              <a 
-                href="https://monad-games-id-site.vercel.app/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-block',
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
-              >
+          ) : (
+            <div className="no-username">
+              <p>No username found</p>
+              <a href="https://monad-games-id-site.vercel.app/" target="_blank" rel="noopener noreferrer">
                 Register Username
               </a>
             </div>
           )}
-          <p><strong>Wallet Address:</strong></p>
-          <p style={{ 
-            fontFamily: 'monospace', 
-            backgroundColor: '#f5f5f5', 
-            padding: '8px', 
-            borderRadius: '4px',
-            wordBreak: 'break-all'
-          }}>
-            {accountAddress}
-          </p>
-          <button 
-            onClick={logout}
-            style={{
-              marginTop: '10px',
-              padding: '8px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
+          
+          <div className="wallet-section">
+            <p><strong>Wallet:</strong></p>
+            <code>{accountAddress}</code>
+          </div>
+          
+          <button onClick={logout} className="logout-btn">
             Logout
           </button>
-        </div>
-      ) : (
-        <div>
-          <p style={{ color: '#ff6b6b' }}>{message}</p>
         </div>
       )}
     </div>
